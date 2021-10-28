@@ -1,0 +1,4 @@
+2021-10-28 14:59:07.627 Info || 类型:MPS.Implement.FolderDomain.FolderDomain,模块：,继承自MPS.Infrastructure.Domain.Folder.IFolderDomain,成功注册到容器
+2021-10-28 14:59:07.653 Info || 类型:MPS.Implement.FolderDomain.HttpFileSyncer,模块：,继承自MPS.Infrastructure.Domain.Folder.IFileSyncer,成功注册到容器
+2021-10-28 15:19:04.464 Info || 类型:MPS.Implement.FolderDomain.FolderDomain,模块：,继承自MPS.Infrastructure.Domain.Folder.IFolderDomain,成功注册到容器
+2021-10-28 15:19:04.477 Info || 类型:MPS.Implement.FolderDomain.HttpFileSyncer,模块：,继承自MPS.Infrastructure.Domain.Folder.IFileSyncer,成功注册到容器

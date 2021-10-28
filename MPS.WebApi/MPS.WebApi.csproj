@@ -1,0 +1,45 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Imgs\**" />
+    <Compile Remove="TestConsole\**" />
+    <Content Remove="Imgs\**" />
+    <Content Remove="TestConsole\**" />
+    <EmbeddedResource Remove="Imgs\**" />
+    <EmbeddedResource Remove="TestConsole\**" />
+    <None Remove="Imgs\**" />
+    <None Remove="TestConsole\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="wwwroot\htmlpage.html" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\htmlpage.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\ComputingAndTelecomCoreToolkit\DLL.MPS.Implement\MPS.Implement\MPS.Implement.csproj" />
+    <ProjectReference Include="..\..\ComputingAndTelecomCoreToolkit\DLL.MPS.Infrastructure\MPS.Infrastructure.csproj" />
+    <ProjectReference Include="..\MPS.HZ.Core\MPS.HZ.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Properties\launchSettings.json">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+
+</Project>
