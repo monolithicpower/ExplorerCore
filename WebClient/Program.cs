@@ -13,13 +13,18 @@ namespace WebClient
         static HttpClient hClinet;
         static void Main(string[] args)
         {
+
             FileInfo fi = new FileInfo("Imgs/sch - 副本.png");
             fi.LastWriteTime = DateTime.Now.AddDays(-1);
             
             Console.WriteLine(fi.Extension);
             Console.ReadLine();
-            return;
+            //return;
             hClinet = new HttpClient();
+            var testUri = "https://localhost:44318/TestArea/HelloWorld/Index";
+            var result = hClinet.GetAsync(testUri).Result.Content.ReadAsStringAsync().Result.ToString();
+            Console.WriteLine(result);
+            Console.ReadLine();
             var client = new System.Net.WebClient();
             var stream = client.OpenRead($"{uri}/GetAllFiles");
             var sr = new StreamReader(stream);

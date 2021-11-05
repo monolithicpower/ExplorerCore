@@ -132,6 +132,7 @@ namespace MPS.WebApi
             //配置中间件提供静态文件。  这玩意儿只能返回.html文件  
             //静态文件存储在项目的 Web 根目录中。 默认目录为 {content root}/wwwroot，但可通过 传入 StaticFileOptions 更改目录
             // using Microsoft.Extensions.FileProviders; PhysicalFileProvider
+            Console.WriteLine(staticFilePath);
             app.UseStaticFiles(
                 new StaticFileOptions
                 {
@@ -146,20 +147,20 @@ namespace MPS.WebApi
             //上面那个一个套路
             //上面那个的升级版本，毕竟StaticFile只能返回.html  这个可以返回所有目录以及文件
             //但是具体的文件是浏览不了的。  名字设置成一样的话，可以浏览其中的html页面。
-            //app.UseDirectoryBrowser(new DirectoryBrowserOptions
-            //{
-            //    FileProvider = new PhysicalFileProvider(path),
-            //    RequestPath = "/StaticFiles"
-            //});
+            app.UseDirectoryBrowser(new DirectoryBrowserOptions
+            {
+                FileProvider = new PhysicalFileProvider(staticFilePath),
+                RequestPath = "/StaticFiles"
+            });
 
             //上面三个的集合体,可以直接不配上面两个的更多参数，UseStaticFiles使用无参以使能wwwroot文件夹的东西
             //浏览器能打开的文件都可以浏览了。包括图片啥的
-            //app.UseFileServer(new FileServerOptions
-            //{
-            //    FileProvider = new PhysicalFileProvider(path),
-            //    RequestPath = "/StaticFiles",
-            //    EnableDirectoryBrowsing = true,//开启文件浏览，可以直接替代上面的配置
-            //});
+            app.UseFileServer(new FileServerOptions
+            {
+                FileProvider = new PhysicalFileProvider(staticFilePath),
+                RequestPath = "/StaticFiles",
+                EnableDirectoryBrowsing = true,//开启文件浏览，可以直接替代上面的配置
+            });
 
             //app.UseRouting();
 

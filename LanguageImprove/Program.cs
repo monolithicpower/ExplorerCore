@@ -227,7 +227,7 @@ namespace LanguageImprove
             Console.WriteLine(ts2);
             #endregion
             #region init
-            //这玩意儿可以替代 private set  ，当你的类的属性的set访问器是init的时候，在外部new时，可以跟大括号赋值，之后都是private set 的了。
+            //这玩意儿可以替代 private set  ，当你的类的属性的set访问器是init的时候，在外部new时，可以跟大括号赋值，之后都是相当于private set 的了（在类内部直接设置私有字段，而非设置属性）。
             var testInit1 = new TestInit();//此时 InitStr 取值构造函数的赋值
             var testInit2 = new TestInit() { InitStr = "Init in new" };
             testInit2.FixInitStr("fix para not property in function");
