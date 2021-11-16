@@ -100,11 +100,18 @@ namespace MPS.WebApi
                 app0.Run(async context =>
                 {
                     var filePath = context.Request.Form["FilePath"];
-                    var extensions = context.Request.Form["Extensions"].ToString().Split(',');
-                    //var path = $"{AppDomain.CurrentDomain.SetupInformation.ApplicationBase}/FilePath";
-                    var fd = new FolderHelper();
-                    var result = fd.GetAllFiles($"{staticFilePath}/{filePath}", extensions);
-                    await context.Response.WriteAsync(Newtonsoft.Json.JsonConvert.SerializeObject(result));
+                    if (filePath.Contains("../") || filePath.Contains("..\\"))
+                    {
+                        await context.Response.WriteAsync(null);
+                    }
+                    else
+                    {
+                        var extensions = context.Request.Form["Extensions"].ToString().Split(',');
+                        //var path = $"{AppDomain.CurrentDomain.SetupInformation.ApplicationBase}/FilePath";
+                        var fd = new FolderHelper();
+                        var result = fd.GetAllFiles($"{staticFilePath}/{filePath}", extensions);
+                        await context.Response.WriteAsync(Newtonsoft.Json.JsonConvert.SerializeObject(result));
+                    }
                 });
             });
 
@@ -179,14 +186,21 @@ namespace MPS.WebApi
                 app0.Run(async context =>
                 {
                     var path = context.Request.Form["FilePath"];
-                    if (File.Exists(path))
+                    if (path.Contains("../") || path.Contains("..\\"))
                     {
-                        using var fs = new FileStream(path, FileMode.Open, FileAccess.Read);
-                        var sr = new StreamReader(fs);
-                        await context.Response.WriteAsync(sr.ReadToEnd());
-                        return;
+                        await context.Response.WriteAsync(null);
                     }
-                    await context.Response.WriteAsync("");
+                    else
+                    {
+                        if (File.Exists(path))
+                        {
+                            using var fs = new FileStream(path, FileMode.Open, FileAccess.Read);
+                            var sr = new StreamReader(fs);
+                            await context.Response.WriteAsync(sr.ReadToEnd());
+                            return;
+                        }
+                        await context.Response.WriteAsync("");
+                    }
                 });
             });
 
@@ -197,17 +211,24 @@ namespace MPS.WebApi
                     try
                     {
                         var filePath = context.Request.Form["FilePath"];
-                        var realFp = $"{staticFilePath}/{filePath}";
-                        var path = Path.GetDirectoryName(realFp);
-                        if (!Directory.Exists(path))
-                            await context.Response.WriteAsync("Directory not exist");
-                        else if (File.Exists(realFp))
+                        if (filePath.Contains("../") || filePath.Contains("..\\"))
                         {
-                            File.Delete(realFp);
-                            await context.Response.WriteAsync("Delete success");
+                            await context.Response.WriteAsync("Return to upper layer operation is not allowed");
                         }
                         else
-                            await context.Response.WriteAsync("File not exist");
+                        {
+                            var realFp = $"{staticFilePath}/{filePath}";
+                            var path = Path.GetDirectoryName(realFp);
+                            if (!Directory.Exists(path))
+                                await context.Response.WriteAsync("Directory not exist");
+                            else if (File.Exists(realFp))
+                            {
+                                File.Delete(realFp);
+                                await context.Response.WriteAsync("Delete success");
+                            }
+                            else
+                                await context.Response.WriteAsync("File not exist");
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -224,24 +245,32 @@ namespace MPS.WebApi
                     {
                         var files = context.Request.Form.Files;
                         var filePath = context.Request.Form["FilePath"];
-                        var lastWriteTime = DateTime.Parse(context.Request.Form["LastWriteTime"]);
-                        var file = files[0];
-                        var realFp = $"{staticFilePath}/{filePath}";
-                        var path = Path.GetDirectoryName(realFp);
-                        if (!Directory.Exists(path))
-                            Directory.CreateDirectory(path);
-                        if (File.Exists(realFp))
-                            File.Delete(realFp);
-                        using var fs = new FileStream(realFp, FileMode.Create, FileAccess.Write);
-                        await file.CopyToAsync(fs);
-                        fs.Dispose();
-                        var fi = new FileInfo(realFp);
-                        fi.LastWriteTime = lastWriteTime;
+                        if (filePath.Contains("../") || filePath.Contains("..\\"))
+                        {
+                            await context.Response.WriteAsync(null);
+                            return;
+                        }
+                        else
+                        {
+                            var lastWriteTime = DateTime.Parse(context.Request.Form["LastWriteTime"]);
+                            var file = files[0];
+                            var realFp = $"{staticFilePath}/{filePath}";
+                            var path = Path.GetDirectoryName(realFp);
+                            if (!Directory.Exists(path))
+                                Directory.CreateDirectory(path);
+                            if (File.Exists(realFp))
+                                File.Delete(realFp);
+                            using var fs = new FileStream(realFp, FileMode.Create, FileAccess.Write);
+                            await file.CopyToAsync(fs);
+                            fs.Dispose();
+                            var fi = new FileInfo(realFp);
+                            fi.LastWriteTime = lastWriteTime;
+                        }
                     }
                     catch (Exception ex)
                     {
                         await context.Response.WriteAsync(ex.Message);
-                        Console.WriteLine(ex);
+                        //Console.WriteLine(ex);
                         return;
                     }
                     await context.Response.WriteAsync("Upload success");

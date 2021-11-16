@@ -19,7 +19,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MPS.Infrastructure", "..\..
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MPS.Implement", "..\..\ComputingAndTelecomCoreToolkit\DLL.MPS.Implement\MPS.Implement\MPS.Implement.csproj", "{74847973-53AB-40D3-B0D7-1FB1D429DA0A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mps.Hosts", "..\Mps.Hosts\Mps.Hosts.csproj", "{D84B4E30-382E-4062-9D0A-AE57A2A20DFC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mps.Hosts", "..\Mps.Hosts\Mps.Hosts.csproj", "{D84B4E30-382E-4062-9D0A-AE57A2A20DFC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FurStart", "..\FurStart\FurStart.csproj", "{FE357CF1-9CD6-40CF-808F-45053C59E6B3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -63,6 +65,10 @@ Global
 		{D84B4E30-382E-4062-9D0A-AE57A2A20DFC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D84B4E30-382E-4062-9D0A-AE57A2A20DFC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D84B4E30-382E-4062-9D0A-AE57A2A20DFC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FE357CF1-9CD6-40CF-808F-45053C59E6B3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FE357CF1-9CD6-40CF-808F-45053C59E6B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FE357CF1-9CD6-40CF-808F-45053C59E6B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FE357CF1-9CD6-40CF-808F-45053C59E6B3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
