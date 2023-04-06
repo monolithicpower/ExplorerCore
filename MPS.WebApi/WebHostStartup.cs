@@ -91,8 +91,6 @@ namespace MPS.WebApi
             //    app.UseExceptionHandler("/Error");
             //    app.UseHsts();
             //}
-
-            IocManager.Instance.RegisterDll("MPS.Implement.dll");
             var staticFilePath = Path.Combine($"{AppDomain.CurrentDomain.SetupInformation.ApplicationBase}", "..\\MyStaticFiles");
 
             app.Map("/GetAllFiles", app0 =>
@@ -220,7 +218,7 @@ namespace MPS.WebApi
                             var realFp = $"{staticFilePath}/{filePath}";
                             var path = Path.GetDirectoryName(realFp);
                             if (!Directory.Exists(path))
-                                await context.Response.WriteAsync("Directory not exist");
+                                await context.Response.WriteAsync("File not exist");
                             else if (File.Exists(realFp))
                             {
                                 File.Delete(realFp);
@@ -228,6 +226,40 @@ namespace MPS.WebApi
                             }
                             else
                                 await context.Response.WriteAsync("File not exist");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex);
+                    }
+                });
+            });
+
+            app.Map("/DeleteFolder", app0 =>
+            {
+                app0.Run(async context =>
+                {
+                    try
+                    {
+                        var filePath = context.Request.Form["FilePath"];
+                        if (filePath.Contains("../") || filePath.Contains("..\\"))
+                        {
+                            await context.Response.WriteAsync("Return to upper layer operation is not allowed");
+                        }
+                        else
+                        {
+                            var dirs = filePath.ToString().Split('\\', '/');
+                            if (dirs.Length < 4)
+                                await context.Response.WriteAsync("The directory hierarchy should not be less than 4.");
+                            var realFp = $"{staticFilePath}/{filePath}";
+                            var path = Path.GetDirectoryName(realFp);
+                            if (!Directory.Exists(path))
+                                await context.Response.WriteAsync("Directory not exist");
+                            else
+                            {
+                                Directory.Delete(realFp, true);
+                                await context.Response.WriteAsync("Delete success");
+                            }
                         }
                     }
                     catch (Exception ex)
@@ -264,7 +296,7 @@ namespace MPS.WebApi
                             await file.CopyToAsync(fs);
                             fs.Dispose();
                             var fi = new FileInfo(realFp);
-                            fi.LastWriteTime = lastWriteTime;
+                            fi.LastWriteTime = DateTime.Now;
                         }
                     }
                     catch (Exception ex)

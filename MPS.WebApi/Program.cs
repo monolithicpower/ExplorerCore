@@ -30,20 +30,12 @@ namespace MPS.WebApi
                         .UseUrls("http://0.0.0.0:5000")
                         .Build()
                         .Run();
-                var d = test("0");
-                d.a = "123";
-                var (_, e) = test("1");
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
             }
             Console.ReadLine();
-        }
-
-        static (string a, string b) test(string c)
-        {
-            return (c, $"{c}1");
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>

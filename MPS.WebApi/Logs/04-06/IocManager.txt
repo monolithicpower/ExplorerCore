@@ -1,0 +1,8 @@
+2023-04-06 10:02:10.860 Info || MPS.Implement.dll:System.IO.FileNotFoundException: Could not load file or assembly 'D:\GitHub\mps\ExplorerCore\MPS.WebApi\bin\Debug\netcoreapp3.1\MPS.Implement.dll'. The system cannot find the file specified.
+File name: 'D:\GitHub\mps\ExplorerCore\MPS.WebApi\bin\Debug\netcoreapp3.1\MPS.Implement.dll'
+   at System.Runtime.Loader.AssemblyLoadContext.LoadFromPath(IntPtr ptrNativeAssemblyLoadContext, String ilPath, String niPath, ObjectHandleOnStack retAssembly)
+   at System.Runtime.Loader.AssemblyLoadContext.LoadFromAssemblyPath(String assemblyPath)
+   at System.Reflection.Assembly.LoadFrom(String assemblyFile)
+   at MPS.Infrastructure.Pattern.IOC.IocManager.RegisterDll(String filePath) in D:\GitHub\mps\ComputingAndTelecomCoreToolkit\DLL.MPS.Infrastructure\Pattern\IOC\IocManager.cs:line 59
+
+

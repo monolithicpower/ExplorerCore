@@ -30,7 +30,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\ComputingAndTelecomCoreToolkit\DLL.MPS.Implement\MPS.Implement\MPS.Implement.csproj" />
     <ProjectReference Include="..\..\ComputingAndTelecomCoreToolkit\DLL.MPS.Infrastructure\MPS.Infrastructure.csproj" />
     <ProjectReference Include="..\MPS.HZ.Core\MPS.HZ.Core.csproj" />
   </ItemGroup>
