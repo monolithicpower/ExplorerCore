@@ -1,0 +1,35 @@
+﻿//Microsoft.Extensions.DependencyInjection.MvcServiceCollectionExtensions
+//services.AddMvc();
+//services.AddRazorPages();
+//Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions
+//services.AddSingleton(typeof(object));
+//既然  Add{Services} 是各路扩展，那么扩展内容里面具体添加了什么呢？
+//为什么把这部分放到扩展里？怀疑windows不想提供这部分源码。
+// *常用的服务有（部分服务框架已默认注册）：
+//  ·AddControllers：注册Controller相关服务，内部调用了AddMvcCore、AddApiExplorer、AddAuthorization、AddCors、AddDataAnnotations、AddFormatterMappings等多个扩展方法
+//  ·AddOptions：注册Options相关服务，如IOptions <>、IOptionsSnapshot <>、IOptionsMonitor <>、IOptionsFactory <>、IOptionsMonitorCache<> 等。很多服务都需要Options，所以很多服务注册的扩展方法会在内部调用AddOptions
+//  ·AddRouting：注册路由相关服务，如IInlineConstraintResolver、LinkGenerator、IConfigureOptions < RouteOptions >、RoutePatternTransformer等
+//  ·AddAddLogging：注册Logging相关服务，如ILoggerFactory、ILogger <>、IConfigureOptions < LoggerFilterOptions >> 等
+//  ·AddAuthentication：注册身份认证相关服务，以方便后续注册JwtBearer、Cookie等服务
+//  ·AddAuthorization：注册用户授权相关服务
+//  ·AddMvc：注册Mvc相关服务，比如Controllers、Views、RazorPages等
+//  ·AddHealthChecks：注册健康检查相关服务，如HealthCheckService、IHostedService等
+
+
+//开启文件路径浏览功能  不管是FileServer  还是   DirectoryBrowser  都需要他
+// 在这里设置中间件是否启用;中间件就是ASP.NET的封装了，帮助开发省略了解析Http协议的部分。语法基本都是  Use{Middleware} 的扩展方法           
+//  ASP.NET Core 模板配置的管道支持：
+//  ·开发人员异常页                            UseDeveloperExceptionPage
+//  ·异常处理程序
+//  ·HTTP 严格传输安全性(HSTS)
+//  ·HTTPS 重定向
+//  ·静态文件
+//  ·ASP.NET Core MVC 和 Razor Pages
+//  ·路由 必须与 UseEndpoints 搭配使用           UseRouting
+//  ·UseEndpoints：执行路由所选择的Endpoint对应的委托
+//  ·UseAuthentication：身份认证中间件  //是否可以登录
+//  ·UseAuthorization：用户授权中间件，用于对请求用户进行授权。//是否拥有权限
+//  ·UseMvc：Mvc中间件
+//  ·UseHealthChecks：健康检查中间件
+//  ·UseMiddleware：用来添加匿名中间件的，通过该方法，可以方便的添加自定义中间件
+//  ·app.Use((context, next) =>{});  直接用的中间件

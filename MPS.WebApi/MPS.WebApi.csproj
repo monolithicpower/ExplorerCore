@@ -20,18 +20,28 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="WebHostStartup.cs~RF10961fa1.TMP" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="wwwroot\htmlpage.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="FluentFTP" Version="51.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\ComputingAndTelecomCoreToolkit\DLL.MPS.Infrastructure\MPS.Infrastructure.csproj" />
     <ProjectReference Include="..\MPS.HZ.Core\MPS.HZ.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="MPS.Infrastructure">
+      <HintPath>..\packages\MPS.Infrastructure.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>
