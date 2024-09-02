@@ -43,7 +43,12 @@ namespace MPS.WebApi
             Configuration = configuration;
             _env = env;
             HostEnvironment = hostEnvironment;
-            FtpClient = new FtpClient("10.10.84.204", 21);
+            var cfg = new FtpConfig();
+            cfg.ConnectTimeout = 30000;
+            cfg.DataConnectionConnectTimeout = 30000;
+            cfg.DataConnectionReadTimeout = 30000;
+            cfg.ReadTimeout = 30000;
+            FtpClient = new FtpClient("10.10.84.204", 21, cfg);
             RemotePath = "MyStaticFiles";
         }
 
@@ -174,8 +179,11 @@ namespace MPS.WebApi
                         //var result = fd.GetAllFiles($"{staticFilePath}/{filePath}", extensions);
                         //await context.Response.WriteAsync(Newtonsoft.Json.JsonConvert.SerializeObject(result));
 
-                        FtpClient.Connect();
                         var folderPath = Path.Combine(RemotePath, filePath);
+                        if (!FtpClient.IsConnected)
+                        {
+                            FtpClient.AutoConnect();
+                        }
                         if (!FtpClient.DirectoryExists(folderPath))
                         {
                             FtpClient.CreateDirectory(folderPath);
@@ -187,13 +195,16 @@ namespace MPS.WebApi
                             {
                                 Directory.CreateDirectory(tempPath);
                             }
+                            if (!FtpClient.IsConnected)
+                            {
+                                FtpClient.AutoConnect();
+                            }
                             FtpClient.DownloadDirectory(tempPath, folderPath);
                             var extensions = context.Request.Form["Extensions"].ToString().Split(',');
                             var fd = new FolderHelper();
                             var result = fd.GetAllFiles(Path.Combine(tempPath, folderPath), extensions);
                             await context.Response.WriteAsync(Newtonsoft.Json.JsonConvert.SerializeObject(result));
                         }
-                        FtpClient.Disconnect();
                     }
                 });
             });
@@ -218,11 +229,18 @@ namespace MPS.WebApi
                         //}
                         //await context.Response.WriteAsync("");
 
-                        FtpClient.Connect();
                         var filePathRemote = Path.Combine(RemotePath, path);
+                        if (!FtpClient.IsConnected)
+                        {
+                            FtpClient.AutoConnect();
+                        }
                         if (FtpClient.FileExists(filePathRemote))
                         {
                             byte[] fileBytes = null;
+                            if (!FtpClient.IsConnected)
+                            {
+                                FtpClient.AutoConnect();
+                            }
                             var result = FtpClient.DownloadBytes(out fileBytes, filePathRemote);
                             if (result)
                             {
@@ -238,7 +256,6 @@ namespace MPS.WebApi
                         {
                             await context.Response.WriteAsync("File not exist");
                         }
-                        FtpClient.Disconnect();
                     }
                 });
             });
@@ -265,15 +282,23 @@ namespace MPS.WebApi
                                 File.Delete(realFp);
                                 //await context.Response.WriteAsync("Delete success");
                             }
-                            FtpClient.Connect();
+
                             var filePathRemote = Path.Combine(RemotePath, filePath);
                             var folderPath = Path.GetDirectoryName(filePathRemote);
+                            if (!FtpClient.IsConnected)
+                            {
+                                FtpClient.AutoConnect();
+                            }
                             if (!FtpClient.DirectoryExists(folderPath))
                             {
                                 await context.Response.WriteAsync("Directory not exist");
                             }
                             else if (FtpClient.FileExists(filePathRemote))
                             {
+                                if (!FtpClient.IsConnected)
+                                {
+                                    FtpClient.AutoConnect();
+                                }
                                 FtpClient.DeleteFile(filePathRemote);
                                 if (File.Exists(Path.Combine(_env.WebRootPath, "Temp", filePathRemote)))
                                 {
@@ -285,7 +310,6 @@ namespace MPS.WebApi
                             {
                                 await context.Response.WriteAsync("File not exist");
                             }
-                            FtpClient.Disconnect();
                         }
                     }
                     catch (Exception ex)
@@ -317,7 +341,10 @@ namespace MPS.WebApi
                             if (!Directory.Exists(path))
                             {
                                 await context.Response.WriteAsync("Directory not exist");
-                                FtpClient.Connect();
+                                if (!FtpClient.IsConnected)
+                                {
+                                    FtpClient.AutoConnect();
+                                }
                                 if (FtpClient.DirectoryExists(foldlerPathRemote))
                                 {
                                     FtpClient.DeleteDirectory(foldlerPathRemote);
@@ -326,7 +353,6 @@ namespace MPS.WebApi
                                 {
                                     Directory.Delete(Path.Combine(_env.WebRootPath, "Temp", foldlerPathRemote), true);
                                 }
-                                FtpClient.Disconnect();
                             }
                             else
                             {
@@ -335,7 +361,10 @@ namespace MPS.WebApi
                                     Directory.Delete(realFp, true);
                                 }
                                 //await context.Response.WriteAsync("Delete success");
-                                FtpClient.Connect();
+                                if (!FtpClient.IsConnected)
+                                {
+                                    FtpClient.AutoConnect();
+                                }
                                 if (FtpClient.DirectoryExists(foldlerPathRemote))
                                 {
                                     FtpClient.DeleteDirectory(foldlerPathRemote);
@@ -345,7 +374,6 @@ namespace MPS.WebApi
                                     Directory.Delete(Path.Combine(_env.WebRootPath, "Temp", foldlerPathRemote), true);
                                 }
                                 await context.Response.WriteAsync("Delete success");
-                                FtpClient.Disconnect();
                             }
                         }
                     }
@@ -394,16 +422,22 @@ namespace MPS.WebApi
                             var fi2 = new FileInfo(tempfs2Path);
                             fi2.LastWriteTime = DateTime.Now;
 
-                            FtpClient.Connect();
                             var filePathRemote = Path.Combine(RemotePath, filePath);
                             var folderPath = Path.GetDirectoryName(filePathRemote);
+                            if (!FtpClient.IsConnected)
+                            {
+                                FtpClient.AutoConnect();
+                            }
                             if (!FtpClient.DirectoryExists(folderPath))
                             {
                                 FtpClient.CreateDirectory(folderPath);
                             }
+                            if (!FtpClient.IsConnected)
+                            {
+                                FtpClient.AutoConnect();
+                            }
                             var state = FtpClient.UploadFile(realFp, filePathRemote, FtpRemoteExists.Overwrite);
                             Console.WriteLine(DateTime.Now.ToString() + "\tUpload File\t" + state);
-                            FtpClient.Disconnect();
                         }
                     }
                     catch (Exception ex)
