@@ -44,10 +44,11 @@ namespace MPS.WebApi
             _env = env;
             HostEnvironment = hostEnvironment;
             var cfg = new FtpConfig();
-            cfg.ConnectTimeout = 30000;
-            cfg.DataConnectionConnectTimeout = 30000;
-            cfg.DataConnectionReadTimeout = 30000;
-            cfg.ReadTimeout = 30000;
+            cfg.ConnectTimeout = 60000;
+            cfg.DataConnectionConnectTimeout = 60000;
+            cfg.DataConnectionReadTimeout = 60000;
+            cfg.ReadTimeout = 60000;
+            cfg.SocketKeepAlive = true;
             FtpClient = new FtpClient("10.10.84.204", 21, cfg);
             RemotePath = "MyStaticFiles";
         }
