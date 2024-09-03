@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using IApplicationLifetime = Microsoft.AspNetCore.Hosting.IApplicationLifetime;
 
@@ -33,7 +34,7 @@ namespace MPS.WebApi
 
         public IHostEnvironment HostEnvironment { get; set; }
 
-        private FtpClient FtpClient { get; set; }
+        //private FtpClient FtpClient { get; set; }
 
         public string RemotePath { get; set; }
 
@@ -43,13 +44,6 @@ namespace MPS.WebApi
             Configuration = configuration;
             _env = env;
             HostEnvironment = hostEnvironment;
-            var cfg = new FtpConfig();
-            cfg.ConnectTimeout = 60000;
-            cfg.DataConnectionConnectTimeout = 60000;
-            cfg.DataConnectionReadTimeout = 60000;
-            cfg.ReadTimeout = 60000;
-            cfg.SocketKeepAlive = true;
-            FtpClient = new FtpClient("10.10.84.204", 21, cfg);
             RemotePath = "MyStaticFiles";
         }
 
@@ -58,6 +52,22 @@ namespace MPS.WebApi
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDirectoryBrowser();
+            //services.AddHostedService(sp =>
+            //{
+            //    return new TimedHostedService(FtpClient);
+            //});
+        }
+
+        private FtpClient GetNewFtpClient()
+        {
+            var cfg = new FtpConfig();
+            cfg.ConnectTimeout = 60000;
+            cfg.DataConnectionConnectTimeout = 60000;
+            cfg.DataConnectionReadTimeout = 60000;
+            cfg.ReadTimeout = 60000;
+            cfg.SocketKeepAlive = true;
+            var ftpClient = new FtpClient("10.10.84.204", 21, cfg);
+            return ftpClient;
         }
 
         private FolderInfo GetAllFiles(string path, string[] fileExtensions, FtpClient ftpClient)
@@ -86,10 +96,10 @@ namespace MPS.WebApi
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IApplicationLifetime applicationLifetime)
         {
-            applicationLifetime.ApplicationStopping.Register(() =>
-            {
-                FtpClient?.Dispose();
-            });
+            //applicationLifetime.ApplicationStopping.Register(() =>
+            //{
+            //    FtpClient?.Dispose();
+            //});
             //·开发人员异常页//常用的中间件，如果方法里面错了没有catch 会展示错误信息
             if (env.IsDevelopment())
             {
@@ -168,44 +178,57 @@ namespace MPS.WebApi
             {
                 app0.Run(async context =>
                 {
-                    var filePath = context.Request.Form["FilePath"];
-                    if (filePath.Contains("../") || filePath.Contains("..\\"))
+                    var ftpClient = GetNewFtpClient();
+                    try
                     {
-                        await context.Response.WriteAsync(null);
-                    }
-                    else
-                    {
-                        //var extensions = context.Request.Form["Extensions"].ToString().Split(',');
-                        //var fd = new FolderHelper();
-                        //var result = fd.GetAllFiles($"{staticFilePath}/{filePath}", extensions);
-                        //await context.Response.WriteAsync(Newtonsoft.Json.JsonConvert.SerializeObject(result));
-
-                        var folderPath = Path.Combine(RemotePath, filePath);
-                        if (!FtpClient.IsConnected)
+                        var filePath = context.Request.Form["FilePath"];
+                        if (filePath.Contains("../") || filePath.Contains("..\\"))
                         {
-                            FtpClient.AutoConnect();
-                        }
-                        if (!FtpClient.DirectoryExists(folderPath))
-                        {
-                            FtpClient.CreateDirectory(folderPath);
+                            await context.Response.WriteAsync(null);
                         }
                         else
                         {
-                            string tempPath = Path.Combine(_env.WebRootPath, "Temp");
-                            if (!Directory.Exists(tempPath))
+                            //var extensions = context.Request.Form["Extensions"].ToString().Split(',');
+                            //var fd = new FolderHelper();
+                            //var result = fd.GetAllFiles($"{staticFilePath}/{filePath}", extensions);
+                            //await context.Response.WriteAsync(Newtonsoft.Json.JsonConvert.SerializeObject(result));
+
+                            var folderPath = Path.Combine(RemotePath, filePath);
+                            if (!ftpClient.IsConnected)
                             {
-                                Directory.CreateDirectory(tempPath);
+                                ftpClient.AutoConnect();
                             }
-                            if (!FtpClient.IsConnected)
+                            if (!ftpClient.DirectoryExists(folderPath))
                             {
-                                FtpClient.AutoConnect();
+                                ftpClient.CreateDirectory(folderPath);
                             }
-                            FtpClient.DownloadDirectory(tempPath, folderPath);
-                            var extensions = context.Request.Form["Extensions"].ToString().Split(',');
-                            var fd = new FolderHelper();
-                            var result = fd.GetAllFiles(Path.Combine(tempPath, folderPath), extensions);
-                            await context.Response.WriteAsync(Newtonsoft.Json.JsonConvert.SerializeObject(result));
+                            else
+                            {
+                                string tempPath = Path.Combine(_env.WebRootPath, "Temp");
+                                if (!Directory.Exists(tempPath))
+                                {
+                                    Directory.CreateDirectory(tempPath);
+                                }
+                                if (!ftpClient.IsConnected)
+                                {
+                                    ftpClient.AutoConnect();
+                                }
+                                ftpClient.DownloadDirectory(tempPath, folderPath);
+                                var extensions = context.Request.Form["Extensions"].ToString().Split(',');
+                                var fd = new FolderHelper();
+                                var result = fd.GetAllFiles(Path.Combine(tempPath, folderPath), extensions);
+                                await context.Response.WriteAsync(Newtonsoft.Json.JsonConvert.SerializeObject(result));
+                            }
                         }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex);
+                    }
+                    finally
+                    {
+                        ftpClient?.Disconnect();
+                        ftpClient?.Dispose();
                     }
                 });
             });
@@ -214,49 +237,62 @@ namespace MPS.WebApi
             {
                 app0.Run(async context =>
                 {
-                    var path = context.Request.Form["FilePath"];
-                    if (path.Contains("../") || path.Contains("..\\"))
+                    var ftpClient = GetNewFtpClient();
+                    try
                     {
-                        await context.Response.WriteAsync(null);
-                    }
-                    else
-                    {
-                        //if (File.Exists(path))
-                        //{
-                        //    using var fs = new FileStream(path, FileMode.Open, FileAccess.Read);
-                        //    var sr = new StreamReader(fs);
-                        //    await context.Response.WriteAsync(sr.ReadToEnd());
-                        //    return;
-                        //}
-                        //await context.Response.WriteAsync("");
-
-                        var filePathRemote = Path.Combine(RemotePath, path);
-                        if (!FtpClient.IsConnected)
+                        var path = context.Request.Form["FilePath"];
+                        if (path.Contains("../") || path.Contains("..\\"))
                         {
-                            FtpClient.AutoConnect();
-                        }
-                        if (FtpClient.FileExists(filePathRemote))
-                        {
-                            byte[] fileBytes = null;
-                            if (!FtpClient.IsConnected)
-                            {
-                                FtpClient.AutoConnect();
-                            }
-                            var result = FtpClient.DownloadBytes(out fileBytes, filePathRemote);
-                            if (result)
-                            {
-                                await context.Response.WriteAsync(Convert.ToBase64String(fileBytes));
-                            }
-                            else
-                            {
-                                await context.Response.WriteAsync("Download file error");
-                            }
-                            fileBytes = null;
+                            await context.Response.WriteAsync(null);
                         }
                         else
                         {
-                            await context.Response.WriteAsync("File not exist");
+                            //if (File.Exists(path))
+                            //{
+                            //    using var fs = new FileStream(path, FileMode.Open, FileAccess.Read);
+                            //    var sr = new StreamReader(fs);
+                            //    await context.Response.WriteAsync(sr.ReadToEnd());
+                            //    return;
+                            //}
+                            //await context.Response.WriteAsync("");
+
+                            var filePathRemote = Path.Combine(RemotePath, path);
+                            if (!ftpClient.IsConnected)
+                            {
+                                ftpClient.AutoConnect();
+                            }
+                            if (ftpClient.FileExists(filePathRemote))
+                            {
+                                byte[] fileBytes = null;
+                                if (!ftpClient.IsConnected)
+                                {
+                                    ftpClient.AutoConnect();
+                                }
+                                var result = ftpClient.DownloadBytes(out fileBytes, filePathRemote);
+                                if (result)
+                                {
+                                    await context.Response.WriteAsync(Convert.ToBase64String(fileBytes));
+                                }
+                                else
+                                {
+                                    await context.Response.WriteAsync("Download file error");
+                                }
+                                fileBytes = null;
+                            }
+                            else
+                            {
+                                await context.Response.WriteAsync("File not exist");
+                            }
                         }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex);
+                    }
+                    finally
+                    {
+                        ftpClient?.Disconnect();
+                        ftpClient?.Dispose();
                     }
                 });
             });
@@ -265,6 +301,7 @@ namespace MPS.WebApi
             {
                 app0.Run(async context =>
                 {
+                    var ftpClient = GetNewFtpClient();
                     try
                     {
                         var filePath = context.Request.Form["FilePath"];
@@ -286,21 +323,21 @@ namespace MPS.WebApi
 
                             var filePathRemote = Path.Combine(RemotePath, filePath);
                             var folderPath = Path.GetDirectoryName(filePathRemote);
-                            if (!FtpClient.IsConnected)
+                            if (!ftpClient.IsConnected)
                             {
-                                FtpClient.AutoConnect();
+                                ftpClient.AutoConnect();
                             }
-                            if (!FtpClient.DirectoryExists(folderPath))
+                            if (!ftpClient.DirectoryExists(folderPath))
                             {
                                 await context.Response.WriteAsync("Directory not exist");
                             }
-                            else if (FtpClient.FileExists(filePathRemote))
+                            else if (ftpClient.FileExists(filePathRemote))
                             {
-                                if (!FtpClient.IsConnected)
+                                if (!ftpClient.IsConnected)
                                 {
-                                    FtpClient.AutoConnect();
+                                    ftpClient.AutoConnect();
                                 }
-                                FtpClient.DeleteFile(filePathRemote);
+                                ftpClient.DeleteFile(filePathRemote);
                                 if (File.Exists(Path.Combine(_env.WebRootPath, "Temp", filePathRemote)))
                                 {
                                     File.Delete(Path.Combine(_env.WebRootPath, "Temp", filePathRemote));
@@ -317,6 +354,11 @@ namespace MPS.WebApi
                     {
                         Console.WriteLine(ex);
                     }
+                    finally
+                    {
+                        ftpClient?.Disconnect();
+                        ftpClient?.Dispose();
+                    }
                 });
             });
 
@@ -324,6 +366,7 @@ namespace MPS.WebApi
             {
                 app0.Run(async context =>
                 {
+                    var ftpClient = GetNewFtpClient();
                     try
                     {
                         var foldlerPath = context.Request.Form["FilePath"];
@@ -342,13 +385,13 @@ namespace MPS.WebApi
                             if (!Directory.Exists(path))
                             {
                                 await context.Response.WriteAsync("Directory not exist");
-                                if (!FtpClient.IsConnected)
+                                if (!ftpClient.IsConnected)
                                 {
-                                    FtpClient.AutoConnect();
+                                    ftpClient.AutoConnect();
                                 }
-                                if (FtpClient.DirectoryExists(foldlerPathRemote))
+                                if (ftpClient.DirectoryExists(foldlerPathRemote))
                                 {
-                                    FtpClient.DeleteDirectory(foldlerPathRemote);
+                                    ftpClient.DeleteDirectory(foldlerPathRemote);
                                 }
                                 if (Directory.Exists(Path.Combine(_env.WebRootPath, "Temp", foldlerPathRemote)))
                                 {
@@ -362,13 +405,13 @@ namespace MPS.WebApi
                                     Directory.Delete(realFp, true);
                                 }
                                 //await context.Response.WriteAsync("Delete success");
-                                if (!FtpClient.IsConnected)
+                                if (!ftpClient.IsConnected)
                                 {
-                                    FtpClient.AutoConnect();
+                                    ftpClient.AutoConnect();
                                 }
-                                if (FtpClient.DirectoryExists(foldlerPathRemote))
+                                if (ftpClient.DirectoryExists(foldlerPathRemote))
                                 {
-                                    FtpClient.DeleteDirectory(foldlerPathRemote);
+                                    ftpClient.DeleteDirectory(foldlerPathRemote);
                                 }
                                 if (Directory.Exists(Path.Combine(_env.WebRootPath, "Temp", foldlerPathRemote)))
                                 {
@@ -382,6 +425,11 @@ namespace MPS.WebApi
                     {
                         Console.WriteLine(ex);
                     }
+                    finally
+                    {
+                        ftpClient?.Disconnect();
+                        ftpClient?.Dispose();
+                    }
                 });
             });
 
@@ -389,6 +437,7 @@ namespace MPS.WebApi
             {
                 app0.Run(async context =>
                 {
+                    var ftpClient = GetNewFtpClient();
                     try
                     {
                         var files = context.Request.Form.Files;
@@ -425,20 +474,21 @@ namespace MPS.WebApi
 
                             var filePathRemote = Path.Combine(RemotePath, filePath);
                             var folderPath = Path.GetDirectoryName(filePathRemote);
-                            if (!FtpClient.IsConnected)
+                            if (!ftpClient.IsConnected)
                             {
-                                FtpClient.AutoConnect();
+                                ftpClient.AutoConnect();
                             }
-                            if (!FtpClient.DirectoryExists(folderPath))
+                            if (!ftpClient.DirectoryExists(folderPath))
                             {
-                                FtpClient.CreateDirectory(folderPath);
+                                ftpClient.CreateDirectory(folderPath);
                             }
-                            if (!FtpClient.IsConnected)
+                            if (!ftpClient.IsConnected)
                             {
-                                FtpClient.AutoConnect();
+                                ftpClient.AutoConnect();
                             }
-                            var state = FtpClient.UploadFile(realFp, filePathRemote, FtpRemoteExists.Overwrite);
+                            var state = ftpClient.UploadFile(realFp, filePathRemote, FtpRemoteExists.Overwrite);
                             Console.WriteLine(DateTime.Now.ToString() + "\tUpload File\t" + state);
+                            await context.Response.WriteAsync("Upload success");
                         }
                     }
                     catch (Exception ex)
@@ -447,7 +497,11 @@ namespace MPS.WebApi
                         Console.WriteLine(ex);
                         return;
                     }
-                    await context.Response.WriteAsync("Upload success");
+                    finally
+                    {
+                        ftpClient?.Disconnect();
+                        ftpClient?.Dispose();
+                    }
                 });
             });
 
@@ -492,4 +546,53 @@ namespace MPS.WebApi
             };
         }
     }
+
+    public class TimedHostedService : BackgroundService
+    {
+        private Timer _timer;
+
+        private FtpClient _ftpClient;
+
+        private int consoleLineCount = 0;
+
+        public TimedHostedService(FtpClient ftpClient)
+        {
+            _ftpClient = ftpClient;
+        }
+
+        protected override Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+            var delay = TimeSpan.FromSeconds(15);
+            _timer = new Timer(DoWork, null, TimeSpan.Zero, delay);
+            return Task.CompletedTask;
+        }
+
+        private void DoWork(object state)
+        {
+            if (!_ftpClient.IsConnected)
+            {
+                _ftpClient.AutoConnect();
+            }
+            _ftpClient.GetWorkingDirectory();
+            Console.WriteLine("FtpClient Connect State:" + _ftpClient.IsConnected);
+            consoleLineCount++;
+            if (consoleLineCount==500)
+            {
+                Console.Clear();
+                consoleLineCount = 0;
+            }
+        }
+
+        public override async Task StopAsync(CancellationToken stoppingToken)
+        {
+            _timer?.Change(Timeout.Infinite, 0);
+            await Task.CompletedTask;
+        }
+
+        public override void Dispose()
+        {
+            _timer?.Dispose();
+        }
+    }
+
 }
