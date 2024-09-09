@@ -53,7 +53,11 @@ namespace MPS.WebApi
             //等价 startup 的 configure service 和 configure
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.ConfigureServices(services =>
+                    webBuilder.UseKestrel(option =>
+                    {
+                        option.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(15);
+                    })
+                    .ConfigureServices(services =>
                     {
                         services.AddControllersWithViews();
                     })

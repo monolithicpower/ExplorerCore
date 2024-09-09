@@ -161,7 +161,7 @@ namespace MPS.WebApi
                 RequestPath = "/StaticFiles",
                 EnableDirectoryBrowsing = true,//开启文件浏览，可以直接替代上面的配置
             });
-
+            
             //app.UseRouting();
 
             //app.UseAuthorization();
