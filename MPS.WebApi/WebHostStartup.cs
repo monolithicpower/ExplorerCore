@@ -217,7 +217,7 @@ namespace MPS.WebApi
                                 ftpClient.DownloadDirectory(tempPath, folderPath);
                                 var extensions = context.Request.Form["Extensions"].ToString().Split(',');
                                 var includeSubDirs = context.Request.Form["IncludeSubDirs"].ToString();
-                                bool includeSubDirsBoolean = includeSubDirs?.ToLower() == "true" || includeSubDirs?.ToLower() == "1";
+                                bool includeSubDirsBoolean = string.IsNullOrEmpty(includeSubDirs) || includeSubDirs?.ToLower() == "true" || includeSubDirs?.ToLower() == "1";
                                 var fd = new FolderHelper();
                                 var result = fd.GetAllFiles(Path.Combine(tempPath, folderPath), extensions, includeSubDirsBoolean);
                                 await context.Response.WriteAsync(Newtonsoft.Json.JsonConvert.SerializeObject(result));
