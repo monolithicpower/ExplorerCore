@@ -67,7 +67,7 @@ namespace MPS.WebApi
             cfg.ReadTimeout = 60000;
             cfg.SocketKeepAlive = true;
             cfg.DataConnectionType = FtpDataConnectionType.AutoPassive;
-            var ftpClient = new FtpClient("10.10.84.204", 21, cfg);
+            var ftpClient = new FtpClient("10.53.66.137", 21, cfg);
             return ftpClient;
         }
 
